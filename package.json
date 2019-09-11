@@ -1,0 +1,42 @@
+{
+  "name": "@abckey/abckey-hid",
+  "version": "0.0.1",
+  "description": "A Blockchain Key.",
+  "author": "abckey <hi@abckey.com>",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "scripts": {
+    "tsc:check": "tsc --noEmit",
+    "tsc:watch": "npm run tsc:check --watch",
+    "build": "rimraf dist && tsc",
+    "test": "npm run build & ava -v",
+    "prepare": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abcKeyCOM/abckey-hid.git"
+  },
+  "devDependencies": {
+    "@types/node": "^12.7.4",
+    "ava": "^2.3.0",
+    "rimraf": "^3.0.0",
+    "ts-node": "^8.1.0",
+    "typescript": "^3.4.5"
+  },
+  "dependencies": {
+    "node-hid": "^0.7.9",
+    "usb-detection": "^4.3.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "ava": {
+    "compileEnhancements": false,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  }
+}
