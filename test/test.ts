@@ -2,7 +2,7 @@ import test from 'ava'
 import abckeyHID from '../dist/index'
 
 test.cb('onAttach', t => {
-  abckeyHID.onAttach(data => {
+  abckeyHID.onAttach((data: any) => {
     console.log(data)
     t.pass()
     t.end()
@@ -10,7 +10,7 @@ test.cb('onAttach', t => {
 })
 
 test.cb('onDetach', t => {
-  abckeyHID.onDetach(data => {
+  abckeyHID.onDetach((data: any) => {
     console.log(data)
     t.pass()
     t.end()
