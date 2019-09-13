@@ -6,7 +6,9 @@ import HID534c0001 from './hid_534c0001'
 declare global {
   namespace NodeJS {
     interface Global {
-      __ABCKEY__: any
+      __ABCKEY__: any,
+      __ABCKEY_ID__: string,
+      __ABCKEY_NAME__: string
     }
   }
 }
@@ -15,65 +17,69 @@ const __IDS__ = [
   HID53c01209.id,
   HID534c0001.id
 ]
-
-let __MUTEX_ID__: string
-
 const onAttach = async (cb: (data: any) => void) => {
-  let _dev = await _findDev()
   UsbDetect.startMonitoring()
-  UsbDetect.on("insert", async () => {
-    if (__MUTEX_ID__) return
-    _dev = await _findDev()
-    if (!_dev) return
-    global.__ABCKEY__ = _dev
-    __MUTEX_ID__ = mutexID(_dev.vid, _dev.pid)
-    const _info = _dev.getDeviceInfo()
-    const _data = {
-      id: __MUTEX_ID__,
-      name: _info.product
-    }
-    cb(_data)
+  UsbDetect.on("insert", () => {
+    if (global.__ABCKEY_ID__) return
+    let _hid = _findHID()
+    if (!_hid) return
+    cb(_openHID(_hid))
   })
-  if (_dev) {
-    _dev.close()
-    UsbDetect.emit('insert')
-  }
+  if (_findHID()) UsbDetect.emit('insert')
 }
 
 const onDetach = (cb: (data: any) => void) => {
   UsbDetect.on('remove', (dev: any) => {
-    if (!__MUTEX_ID__) return
-    const tmpID = mutexID(dev.vendorId, dev.productId)
-    if (tmpID !== __MUTEX_ID__) return
-    global.__ABCKEY__.close()
-    __MUTEX_ID__ = ''
-    cb({ id: tmpID })
+    if (!global.__ABCKEY_ID__) return
+    if (_mutexID(dev.vendorId, dev.productId) !== global.__ABCKEY_ID__) return
+    cb(_closeHID())
   })
 }
 
-const mutexID = (vid: number, pid: number) => {
+const _findHID = () => {
+  const devices = NodeHid.devices()
+  for (let dev of devices) {
+    for (let abckey of __IDS__) {
+      if (dev.vendorId === abckey.vid && dev.productId === abckey.pid) return dev
+    }
+  }
+  return null
+}
+
+const _openHID = (hid: any) => {
+  try {
+    let hidDev = new NodeHid.HID(hid.vendorId, hid.productId)
+    global.__ABCKEY__ = hidDev
+    global.__ABCKEY_ID__ = _mutexID(hid.vendorId, hid.productId)
+    global.__ABCKEY_NAME__ = hid.product
+    return {
+      id: global.__ABCKEY_ID__,
+      name: global.__ABCKEY_NAME__
+    }
+  } catch (err) {
+    console.error('#', hid, err)
+    return null
+  }
+}
+
+const _closeHID = () => {
+  const data = {
+    id: global.__ABCKEY_ID__,
+    name: global.__ABCKEY_NAME__
+  }
+  global.__ABCKEY__.close()
+  global.__ABCKEY__ = null
+  global.__ABCKEY_ID__ = ''
+  global.__ABCKEY_NAME__ = ''
+  return data
+}
+
+const _mutexID = (vid: number, pid: number) => {
   let _vid = Buffer.alloc(2)
   let _pid = Buffer.alloc(2)
   _vid.writeInt16BE(vid, 0)
   _pid.writeInt16BE(pid, 0)
-  const id = _vid.toString('hex') + _pid.toString('hex')
-  return id
-}
-
-const _findDev = async () => {
-  await new Promise(resolve => setTimeout(resolve, 222))
-  let dev = null
-  for (let item of __IDS__) {
-    try {
-      dev = new NodeHid.HID(item.vid, item.pid)
-      dev.vid = item.vid
-      dev.pid = item.pid
-      break
-    } catch (err) {
-      console.error('#', item.vid, item.pid, err)
-    }
-  }
-  return dev
+  return _vid.toString('hex') + _pid.toString('hex')
 }
 
 export default {
