@@ -17,6 +17,7 @@ const __IDS__ = [
   HID53c01209.id,
   HID534c0001.id
 ]
+
 const onAttach = async (cb: (data: any) => void) => {
   UsbDetect.startMonitoring()
   UsbDetect.on("insert", () => {
@@ -57,7 +58,7 @@ const _openHID = (hid: any) => {
       name: global.__ABCKEY_NAME__
     }
   } catch (err) {
-    console.error('#', hid, err)
+    console.error('# _openHID', hid, err)
     return null
   }
 }

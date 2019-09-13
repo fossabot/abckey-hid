@@ -1,7 +1,7 @@
 {
   "name": "@abckey/abckey-hid",
   "version": "0.0.1",
-  "description": "A Blockchain Key.",
+  "description": "Communicate with ABCKEY Hardware Wallets.",
   "author": "abckey <hi@abckey.com>",
   "license": "MIT",
   "main": "dist/index.js",
